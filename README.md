@@ -77,13 +77,13 @@ Useful pages:
 ## Default Users
 The application includes pre-configured users for different roles:
 
-| Username | Password | Role | Access Level |
-|----------|----------|------|--------------|
-| EME | EME | Emergency Services | Critical patients and alerts |
-| DEP1 | DEP | Department User 1 | Orders and reports |
-| DEP2 | DEP | Department User 2 | Orders and reports |
-| ADM1 | ADM | Administrator 1 | Full system access |
-| ADM2 | ADM | Administrator 2 | Full system access |
+| Username | Password | Role              | Access Level                 |
+|----------|----------|-------------------|------------------------------|
+| EME      | EME      | Emergency Services| Critical patients and alerts |
+| DEP1     | DEP      | Department User 1 | Orders and reports           |
+| DEP2     | DEP      | Department User 2 | Orders and reports           |
+| ADM1     | ADM      | Administrator 1   | Full system access           |
+| ADM2     | ADM      | Administrator 2   | Full system access           |
 
 Login at: `http://127.0.0.1:8004/accounts/login/`
 

@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: coruscant-health-administration
+    env: python
+    region: ohio
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --no-input
+    startCommand: python manage.py migrate && gunicorn cha.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DEBUG
+        value: "False"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DOCUMENT_ENCRYPTION_SECRET
+        generateValue: true
