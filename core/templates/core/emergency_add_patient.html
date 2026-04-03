@@ -1,0 +1,31 @@
+{% extends "core/base.html" %}
+
+{% block title %}Emergency Add Patient - Coruscant Health Administration{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h1>🚨 Add New Patient (Emergency)</h1>
+  <p class="text-muted">Quickly register a new patient with profile details.</p>
+</div>
+
+<div class="card">
+  <form method="post" class="mt-3">
+    {% csrf_token %}
+
+    <div class="section">
+      <h3>Account</h3>
+      {{ user_form.as_p }}
+    </div>
+
+    <div class="section">
+      <h3>Patient Info</h3>
+      {{ profile_form.as_p }}
+    </div>
+
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-primary btn-block">Create Patient</button>
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary btn-block">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

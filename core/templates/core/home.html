@@ -1,0 +1,75 @@
+{% extends "core/base.html" %}
+
+{% block title %}Home - Coruscant Health Administration{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <h1>Coruscant Health Administration</h1>
+  {% if user.is_authenticated %}
+    <p>Welcome back, {{ user.get_full_name|default:user.username }}. Your dashboard is ready.</p>
+  {% else %}
+    <p>Secure care coordination for patients, doctors, departments, administrators, and emergency services.</p>
+  {% endif %}
+</div>
+
+<div class="dashboard-grid mt-5">
+  <div class="dashboard-card">
+    <h4>Registered Patients</h4>
+    <div class="value">{{ patient_count }}</div>
+  </div>
+  <div class="dashboard-card">
+    <h4>Approved Doctors</h4>
+    <div class="value">{{ doctor_count }}</div>
+  </div>
+  <div class="dashboard-card">
+    <h4>Health Readings</h4>
+    <div class="value">{{ reading_count }}</div>
+  </div>
+  <div class="dashboard-card">
+    <h4>Service Orders</h4>
+    <div class="value">{{ order_count }}</div>
+  </div>
+</div>
+
+{% if user.is_authenticated %}
+<div class="action-grid mt-5">
+  <div class="action-card">
+    <h3>📊 Dashboard</h3>
+    <p>Review your role-specific tasks, records, orders, reports, and documents.</p>
+    <a href="{% url 'dashboard' %}" class="btn btn-primary">Go to Dashboard</a>
+  </div>
+</div>
+{% else %}
+<div class="action-grid mt-5">
+  <div class="action-card">
+    <h3>👤 Patient Registration</h3>
+    <p>Create a patient account, wait for administrator acknowledgement, then upload daily device readings.</p>
+    <a href="{% url 'register_patient' %}" class="btn btn-primary">Register as Patient</a>
+  </div>
+  <div class="action-card">
+    <h3>👨‍⚕️ Doctor Registration</h3>
+    <p>Register as a doctor, receive administrator approval, then monitor records and prescribe care.</p>
+    <a href="{% url 'register_doctor' %}" class="btn btn-secondary">Register as Doctor</a>
+  </div>
+  <div class="action-card">
+    <h3>🔐 Staff Login</h3>
+    <p>Sign in with your organization credentials to access the medical workflow.</p>
+    <a href="{% url 'login' %}" class="btn btn-outline">Staff Login</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="card mt-5">
+  <h2>How The Platform Works</h2>
+  <div class="section">
+    <h3>Stakeholder Coverage</h3>
+    <ul>
+      <li><strong>Patients:</strong> register, upload readings, view doctor suggestions, and manage encrypted documents.</li>
+      <li><strong>Doctors:</strong> monitor patient records, write reports, and create service orders.</li>
+      <li><strong>Department:</strong> process incoming orders and publish results.</li>
+      <li><strong>Administrators:</strong> approve registrations, register users, monitor the platform, and manage upgrades.</li>
+      <li><strong>Emergency Services:</strong> add new patients quickly and open critical records.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

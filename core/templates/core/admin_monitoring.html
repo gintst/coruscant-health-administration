@@ -1,0 +1,203 @@
+{% extends "core/base.html" %}
+
+{% block title %}System Monitoring - Coruscant Health Administration{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h1>📊 System Monitoring Dashboard</h1>
+  <p class="text-muted">Approve new clinical accounts and monitor operational health in one place.</p>
+</div>
+
+<div class="card">
+  <h2>✅ Pending Approvals</h2>
+  <div class="action-grid">
+    <div class="action-card">
+      <h3>Patients Awaiting Approval</h3>
+      {% if pending_patients %}
+        {% for patient in pending_patients %}
+          <form method="post" action="{% url 'approve_user' %}" class="compact-form">
+            {% csrf_token %}
+            <input type="hidden" name="profile_type" value="patient">
+            <input type="hidden" name="profile_id" value="{{ patient.id }}">
+            <p><strong>{{ patient.user.username }}</strong> · {{ patient.location|default:"No location yet" }}</p>
+            <button type="submit" class="btn btn-primary btn-block">Approve Patient</button>
+          </form>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No patient approvals pending.</p>
+      {% endif %}
+    </div>
+    <div class="action-card">
+      <h3>Doctors Awaiting Approval</h3>
+      {% if pending_doctors %}
+        {% for doctor in pending_doctors %}
+          <form method="post" action="{% url 'approve_user' %}" class="compact-form">
+            {% csrf_token %}
+            <input type="hidden" name="profile_type" value="doctor">
+            <input type="hidden" name="profile_id" value="{{ doctor.id }}">
+            <p><strong>{{ doctor.user.username }}</strong> · {{ doctor.specialty|default:"General" }}</p>
+            <button type="submit" class="btn btn-secondary btn-block">Approve Doctor</button>
+          </form>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted">No doctor approvals pending.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>👥 User Statistics</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>{{ total_users }}</h3>
+      <p>Total Users</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_patients }}</h3>
+      <p>Patients</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_doctors }}</h3>
+      <p>Doctors</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_emergency_staff }}</h3>
+      <p>Emergency Staff</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_department_staff }}</h3>
+      <p>Department Staff</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_admins }}</h3>
+      <p>Administrators</p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>📋 System Activity</h2>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <h3>{{ total_readings }}</h3>
+      <p>Total Health Readings</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_reports }}</h3>
+      <p>Doctor Reports</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ total_orders }}</h3>
+      <p>Total Orders</p>
+    </div>
+    <div class="stat-card">
+      <h3>{{ pending_orders }}</h3>
+      <p>Pending Orders</p>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>🚨 Recent Critical Readings (Last 24 Hours)</h2>
+  {% if critical_readings %}
+    <table>
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Time</th>
+          <th>Heart Rate</th>
+          <th>Blood Pressure</th>
+          <th>Oxygen</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reading in critical_readings %}
+        <tr>
+          <td>{{ reading.patient.user.username }}</td>
+          <td>{{ reading.recorded_at|date:"M d, H:i" }}</td>
+          <td>{{ reading.heart_rate|default:"-" }}</td>
+          <td>{{ reading.blood_pressure|default:"-" }}</td>
+          <td>{{ reading.oxygen_saturation|default:"-" }}</td>
+          <td>{{ reading.note|truncatechars:30|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No critical readings in the last 24 hours.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>📄 Recent Reports</h2>
+  {% if recent_reports %}
+    <div class="dashboard-grid">
+      {% for report in recent_reports %}
+      <div class="dashboard-card">
+        <h4>{{ report.patient.user.username }} - {{ report.created_at|date:"M d, Y H:i" }}</h4>
+        <p><strong>Doctor:</strong> {{ report.doctor.user.username }}</p>
+        <p>{{ report.report_text|truncatechars:100 }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No recent reports.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>⚙️ Administrative Tools</h2>
+  <div class="action-grid">
+    <div class="action-card">
+      <h3>🗄️ Database Admin</h3>
+      <p>Manage users, records, orders, and documents.</p>
+      <a href="/django-admin/" class="btn btn-primary" target="_blank">Open Admin Panel</a>
+    </div>
+    <div class="action-card">
+      <h3>👤 Register User</h3>
+      <p>Create new user accounts with the proper role and immediate approval.</p>
+      <a href="{% url 'admin_register_user' %}" class="btn btn-secondary">Register User</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid #dee2e6;
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f766e;
+}
+
+.stat-card p {
+  margin: 0.5rem 0 0 0;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.compact-form {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+</style>
+{% endblock %}

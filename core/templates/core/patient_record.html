@@ -1,0 +1,94 @@
+{% extends "core/base.html" %}
+
+{% block title %}Patient Record{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h1>🧾 Patient Record</h1>
+  <p class="text-muted">Patient: <strong>{{ patient.user.get_full_name|default:patient.user.username }}</strong></p>
+</div>
+
+<div class="card">
+  <h2>Profile</h2>
+  <p><strong>Username:</strong> {{ patient.user.username }}</p>
+  <p><strong>Location:</strong> {{ patient.location|default:"Not provided" }}</p>
+  <p><strong>Date of Birth:</strong> {{ patient.date_of_birth|default:"Not provided" }}</p>
+</div>
+
+<div class="card">
+  <h2>Recent Health Readings</h2>
+  {% if health_readings %}
+    <table>
+      <thead>
+        <tr>
+          <th>Recorded</th>
+          <th>Heart Rate</th>
+          <th>Blood Pressure</th>
+          <th>Oxygen</th>
+          <th>Note</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for reading in health_readings %}
+        <tr>
+          <td>{{ reading.recorded_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ reading.heart_rate|default:"-" }}</td>
+          <td>{{ reading.blood_pressure|default:"-" }}</td>
+          <td>{{ reading.oxygen_saturation|default:"-" }}</td>
+          <td>{{ reading.note|default:"-" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No health readings available.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Doctor Reports</h2>
+  {% if reports %}
+    <div class="dashboard-grid">
+      {% for report in reports %}
+      <div class="dashboard-card">
+        <h4>{{ report.created_at|date:"M d, Y H:i" }}</h4>
+        <p><strong>Doctor:</strong> {{ report.doctor.user.username }}</p>
+        <p>{{ report.report_text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">No doctor reports available.</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>Service Orders</h2>
+  {% if orders %}
+    <table>
+      <thead>
+        <tr>
+          <th>Created</th>
+          <th>Doctor</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+          <td>{{ order.doctor.user.username }}</td>
+          <td>{{ order.description }}</td>
+          <td>{{ order.get_status_display }}</td>
+          <td>{{ order.result|default:"Pending" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="text-muted">No service orders available.</p>
+  {% endif %}
+</div>
+{% endblock %}

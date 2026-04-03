@@ -1,0 +1,21 @@
+{% extends "core/base.html" %}
+
+{% block title %}Process Order{% endblock %}
+
+{% block content %}
+<div class="section">
+  <h1>🧪 Process Order #{{ order.id }}</h1>
+  <p class="text-muted">Patient: <strong>{{ order.patient.user.username }}</strong> | Requested by: <strong>{{ order.doctor.user.username }}</strong></p>
+</div>
+
+<div class="card">
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-primary">Update Order</button>
+      <a href="{% url 'dashboard' %}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
