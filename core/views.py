@@ -13,10 +13,12 @@ from .forms import (
     ApprovalActionForm,
     DoctorReportForm,
     DocumentUploadForm,
+    DoctorProfileForm,
     HealthReadingForm,
     OrderForm,
     OrderProcessForm,
     PatientProfileForm,
+    PublicRegistrationForm,
     UserLoginForm,
     UserRegistrationForm,
 )
@@ -72,9 +74,15 @@ def ensure_default_users():
     )
     if adm1_created:
         adm1_user.set_password("ADM")
-    adm1_user.is_staff = True
-    adm1_user.is_superuser = True
-    adm1_user.save()
+    adm1_needs_save = adm1_created
+    if not adm1_user.is_staff:
+        adm1_user.is_staff = True
+        adm1_needs_save = True
+    if not adm1_user.is_superuser:
+        adm1_user.is_superuser = True
+        adm1_needs_save = True
+    if adm1_needs_save:
+        adm1_user.save()
     Administrator.objects.get_or_create(user=adm1_user, defaults={"level": "Senior"})
 
     if not User.objects.filter(username="ADM2").exists():
@@ -141,28 +149,46 @@ def user_login(request):
     return render(request, "core/login.html", {"form": form})
 
 
+def build_public_username(first_name, last_name):
+    base = f"{first_name}.{last_name}".lower().replace(" ", "-").replace("'", "").replace('"', "")
+    candidate = base
+    suffix = 1
+    while User.objects.filter(username=candidate).exists():
+        suffix += 1
+        candidate = f"{base}{suffix}"
+    return candidate
+
+
 def register_patient(request):
     if request.method == "POST":
-        form = UserRegistrationForm(request.POST)
+        form = PublicRegistrationForm(request.POST)
         profile_form = PatientProfileForm(request.POST)
         if form.is_valid() and profile_form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])
+            user = User(
+                username=build_public_username(
+                    form.cleaned_data["first_name"],
+                    form.cleaned_data["last_name"],
+                ),
+                first_name=form.cleaned_data["first_name"],
+                last_name=form.cleaned_data["last_name"],
+                email=form.cleaned_data.get("email", ""),
+            )
+            user.set_unusable_password()
             user.save()
             patient = profile_form.save(commit=False)
             patient.user = user
-            patient.is_approved = False
+            patient.is_approved = True
             patient.save()
             patient_group, _ = Group.objects.get_or_create(name="Patient")
             user.groups.add(patient_group)
             login(request, user)
-            messages.info(
+            messages.success(
                 request,
-                "Your patient account is pending administrator approval.",
+                "Your patient account is ready. You can add readings and documents now.",
             )
             return redirect("dashboard")
     else:
-        form = UserRegistrationForm()
+        form = PublicRegistrationForm()
         profile_form = PatientProfileForm()
     return render(
         request,
@@ -173,28 +199,38 @@ def register_patient(request):
 
 def register_doctor(request):
     if request.method == "POST":
-        form = UserRegistrationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data["password"])
+        form = PublicRegistrationForm(request.POST)
+        profile_form = DoctorProfileForm(request.POST)
+        if form.is_valid() and profile_form.is_valid():
+            user = User(
+                username=build_public_username(
+                    form.cleaned_data["first_name"],
+                    form.cleaned_data["last_name"],
+                ),
+                first_name=form.cleaned_data["first_name"],
+                last_name=form.cleaned_data["last_name"],
+                email=form.cleaned_data.get("email", ""),
+            )
+            user.set_unusable_password()
             user.is_staff = True
             user.save()
-            Doctor.objects.create(
-                user=user,
-                specialty=request.POST.get("specialty", "General"),
-                is_approved=False,
-            )
+            doctor = profile_form.save(commit=False)
+            doctor.user = user
+            doctor.specialty = doctor.specialty or "General"
+            doctor.is_approved = True
+            doctor.save()
             doctor_group, _ = Group.objects.get_or_create(name="Doctor")
             user.groups.add(doctor_group)
             login(request, user)
-            messages.info(
+            messages.success(
                 request,
-                "Your doctor account is pending administrator approval.",
+                "Your doctor account is ready. You can start using the dashboard now.",
             )
             return redirect("dashboard")
     else:
-        form = UserRegistrationForm()
-    return render(request, "core/register_doctor.html", {"form": form})
+        form = PublicRegistrationForm()
+        profile_form = DoctorProfileForm()
+    return render(request, "core/register_doctor.html", {"form": form, "profile_form": profile_form})
 
 
 @login_required
@@ -279,6 +315,7 @@ def dashboard(request):
     if patient:
         context.update(
             {
+                "available_doctors": Doctor.objects.filter(is_approved=True).order_by("user__first_name", "user__last_name", "user__username"),
                 "health_readings": HealthReading.objects.filter(patient=patient).order_by("-recorded_at"),
                 "patient_is_approved": patient.is_approved,
                 "reports": DoctorReport.objects.filter(patient=patient).order_by("-created_at"),

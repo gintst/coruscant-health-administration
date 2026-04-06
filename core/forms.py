@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 from django.contrib.auth.models import User
 
@@ -15,6 +17,28 @@ class UserRegistrationForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["username", "first_name", "last_name", "email", "password"]
+
+
+class PublicRegistrationForm(forms.Form):
+    first_name = forms.CharField(max_length=150, required=True)
+    last_name = forms.CharField(max_length=150, required=True)
+    email = forms.EmailField(required=False)
+
+    name_pattern = re.compile(r"^[A-Za-z][A-Za-z '\-]*[A-Za-z]$|^[A-Za-z]$")
+
+    def _clean_name_field(self, field_name):
+        value = (self.cleaned_data.get(field_name) or "").strip()
+        if not value:
+            raise forms.ValidationError("This field is required.")
+        if not self.name_pattern.fullmatch(value):
+            raise forms.ValidationError("Use letters only, with spaces, apostrophes, or hyphens if needed.")
+        return value
+
+    def clean_first_name(self):
+        return self._clean_name_field("first_name")
+
+    def clean_last_name(self):
+        return self._clean_name_field("last_name")
 
 
 class PatientProfileForm(forms.ModelForm):

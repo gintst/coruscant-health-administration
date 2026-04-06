@@ -1,1 +1,1 @@
-https://coruscant-health-admin.example.com
+https://coruscant-health-administration.onrender.com

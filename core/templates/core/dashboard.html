@@ -4,8 +4,23 @@
 
 {% block content %}
 <div class="section">
+  {% if patient %}
+  <h1>📊 Dashboard: {{ patient.user.get_full_name|default:patient.user.username }}</h1>
+  {% elif doctor %}
+  <h1>📊 Dashboard: {{ doctor.user.get_full_name|default:doctor.user.username }}</h1>
+  {% elif user.is_authenticated %}
+  <h1>📊 Dashboard: {{ user.get_full_name|default:user.username }}</h1>
+  {% else %}
   <h1>📊 Dashboard</h1>
+  {% endif %}
   <p class="text-muted">Role-aware access to records, orders, reports, and encrypted documents.</p>
+  {% if patient %}
+  <p><strong>Signed in as:</strong> {{ patient.user.get_full_name|default:patient.user.username }}</p>
+  {% elif doctor %}
+  <p><strong>Signed in as:</strong> {{ doctor.user.get_full_name|default:doctor.user.username }}</p>
+  {% elif user.is_authenticated %}
+  <p><strong>Signed in as:</strong> {{ user.get_full_name|default:user.username }}</p>
+  {% endif %}
 </div>
 
 {% if patient and not patient_is_approved %}
@@ -24,6 +39,12 @@
 <div class="card">
   <h2>👨‍⚕️ Doctor Panel</h2>
   <div class="section">
+    <h3>{{ doctor.user.get_full_name|default:doctor.user.username }}</h3>
+    <p class="text-muted">Doctor dashboard for {{ doctor.user.get_full_name|default:doctor.user.username }}.</p>
+    <p><strong>First name:</strong> {{ doctor.user.first_name|default:doctor.user.username }}</p>
+    <p><strong>Last name:</strong> {{ doctor.user.last_name|default:"-" }}</p>
+  </div>
+  <div class="section">
     <h3>Your Patients</h3>
     {% if patients %}
       <table>
@@ -37,7 +58,7 @@
         <tbody>
           {% for patient in patients %}
           <tr>
-            <td><strong>{{ patient.user.username }}</strong></td>
+            <td><strong>{{ patient.user.get_full_name|default:patient.user.username }}</strong></td>
             <td>{% if patient.is_approved %}<span class="badge badge-success">Approved</span>{% else %}<span class="badge badge-warning">Pending</span>{% endif %}</td>
             <td>
               <a href="{% url 'patient_record' patient.id %}" class="btn btn-outline">View Record</a>
@@ -70,7 +91,7 @@
         <tbody>
           {% for order in orders %}
           <tr>
-            <td>{{ order.patient.user.username }}</td>
+            <td>{{ order.patient.user.get_full_name|default:order.patient.user.username }}</td>
             <td>{{ order.description|truncatechars:60 }}</td>
             <td>{{ order.get_status_display }}</td>
             <td>{{ order.result|default:"Pending department action" }}</td>
@@ -88,6 +109,12 @@
 {% if patient %}
 <div class="card">
   <h2>👤 Patient Panel</h2>
+  <div class="section">
+    <h3>{{ patient.user.get_full_name|default:patient.user.username }}</h3>
+    <p class="text-muted">Patient dashboard for {{ patient.user.get_full_name|default:patient.user.username }}.</p>
+    <p><strong>First name:</strong> {{ patient.user.first_name|default:patient.user.username }}</p>
+    <p><strong>Last name:</strong> {{ patient.user.last_name|default:"-" }}</p>
+  </div>
   <div class="section">
     <h3>📈 Your Health Readings</h3>
     {% if health_readings %}
@@ -124,6 +151,19 @@
   </div>
 
   <div class="section">
+    <h3>👨‍⚕️ Registered Doctors</h3>
+    {% if available_doctors %}
+      <ul>
+        {% for listed_doctor in available_doctors %}
+        <li>{{ listed_doctor.user.get_full_name|default:listed_doctor.user.username }}{% if listed_doctor.specialty %} - {{ listed_doctor.specialty }}{% endif %}</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="text-muted">No doctors are registered yet.</p>
+    {% endif %}
+  </div>
+
+  <div class="section">
     <h3>📋 Doctor Reports</h3>
     {% if reports %}
       <div class="dashboard-grid">
@@ -131,7 +171,7 @@
         <div class="dashboard-card">
           <h4>{{ r.created_at|date:"M d, Y" }}</h4>
           <p>{{ r.report_text }}</p>
-          <p class="text-muted">By: {{ r.doctor.user.username }}</p>
+          <p class="text-muted">By: {{ r.doctor.user.get_full_name|default:r.doctor.user.username }}</p>
         </div>
         {% endfor %}
       </div>
@@ -229,7 +269,7 @@
           <tr>
             <td>{{ order.id }}</td>
             <td>{{ order.patient.user.username }}</td>
-            <td>{{ order.doctor.user.username }}</td>
+            <td>{{ order.doctor.user.get_full_name|default:order.doctor.user.username }}</td>
             <td>{{ order.description|truncatechars:50 }}</td>
             <td>{{ order.get_status_display }}</td>
             <td><a href="{% url 'process_order' order.id %}" class="btn btn-primary">Process</a></td>
@@ -250,7 +290,7 @@
         <div class="dashboard-card">
           <h4>Report for {{ report.patient.user.username }}</h4>
           <p>{{ report.report_text|truncatechars:100 }}</p>
-          <p class="text-muted">By: {{ report.doctor.user.username }} on {{ report.created_at|date:"M d, Y" }}</p>
+          <p class="text-muted">By: {{ report.doctor.user.get_full_name|default:report.doctor.user.username }} on {{ report.created_at|date:"M d, Y" }}</p>
         </div>
         {% endfor %}
       </div>
@@ -287,7 +327,7 @@
     {% if all_doctors %}
       <ul>
         {% for doctor in all_doctors %}
-        <li>{{ doctor.user.username }} - {{ doctor.specialty }}{% if not doctor.is_approved %} (pending approval){% endif %}</li>
+        <li>{{ doctor.user.get_full_name|default:doctor.user.username }} - {{ doctor.specialty }}{% if not doctor.is_approved %} (pending approval){% endif %}</li>
         {% endfor %}
       </ul>
     {% else %}

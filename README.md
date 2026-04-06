@@ -15,64 +15,25 @@ This implementation also covers the required stakeholder workflows for:
 The solution is a Django project (`cha`) with a `core` app that includes:
 - `Patient` and `Doctor` profiles
 - `HealthReading`, `Order`, `DoctorReport`, `Document` data models
-- administrator approval workflow for patient and doctor onboarding
+- streamlined self-registration for patients and doctors
 - role-based dashboards and views for patient, doctor, department, admin, and emergency teams
 - encrypted document upload/download for approved patients and doctors
 - templates and forms for each major action
 - admin site integration and CI for management quality
 
 More specifically:
-- Patients can register, wait for administrator approval, upload daily readings, and view doctor suggestions.
-- Doctors can register, wait for administrator approval, inspect patient records, write reports, and create medical service orders.
+- Patients can register with only first name and last name required, land directly on the dashboard, upload daily readings, and view registered doctors.
+- Doctors can register with only first name and last name required, land directly on the dashboard, inspect patient records, write reports, and create medical service orders.
 - Department users can process orders and upload results.
 - Emergency services can quickly create new patient entries and review critical patient records.
 - Administrators can approve patient and doctor accounts, register users, and monitor activity from a dedicated dashboard.
 
-## Installation
-1. Create and activate Python venv:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-2. Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
-
-Installed project dependencies include:
-- `Django==4.2`
-- `cryptography==46.0.2`
-
-3. Initialize database:
-
-```bash
-python manage.py migrate
-```
-
-Optional:
-- Set `DOCUMENT_ENCRYPTION_SECRET` for a dedicated document-encryption key in addition to Django `SECRET_KEY`.
-
-## Usage
-Start the Django development server:
-
-```bash
-python manage.py runserver 0.0.0.0:8004
-```
-
-Open browser at:
-
-```
-http://127.0.0.1:8004/
-```
-
-Useful pages:
-- Dashboard: `http://127.0.0.1:8004/dashboard/`
-- Admin monitoring: `http://127.0.0.1:8004/admin/monitoring/`
-- Django admin: `http://127.0.0.1:8004/django-admin/`
-- Emergency intake: `http://127.0.0.1:8004/emergency/add-patient/`
+## Deployed Application
+- Live app: `https://coruscant-health-administration.onrender.com`
+- Dashboard: `https://coruscant-health-administration.onrender.com/dashboard/`
+- Admin monitoring: `https://coruscant-health-administration.onrender.com/admin/monitoring/`
+- Emergency intake: `https://coruscant-health-administration.onrender.com/emergency/add-patient/`
+- Login: `https://coruscant-health-administration.onrender.com/accounts/login/`
 
 ## Default Users
 The application includes pre-configured users for different roles:
@@ -85,16 +46,16 @@ The application includes pre-configured users for different roles:
 | ADM1     | ADM      | Administrator 1   | Full system access           |
 | ADM2     | ADM      | Administrator 2   | Full system access           |
 
-Login at: `http://127.0.0.1:8004/accounts/login/`
+Login at: `https://coruscant-health-administration.onrender.com/accounts/login/`
 
 Notes:
 - Default users are created automatically when the application home page is opened if they do not already exist.
-- Patient and doctor self-registered accounts start pending approval until acknowledged by an administrator.
+- Patient and doctor self-registered accounts are approved immediately and redirected straight to the dashboard.
 - Patient and doctor accounts created directly by an administrator are approved immediately.
 
 ## Features
 - **Role-based access control** with different dashboards per user type
-- **Administrator acknowledgment** before patients and doctors can perform protected actions
+- **Fast self-registration** where public patient and doctor signup requires only first name and last name
 - **Emergency patient registration** for quick data entry
 - **Department order processing** with structured order status tracking
 - **Encrypted document storage** for patient and doctor uploads
@@ -106,12 +67,29 @@ Additional implemented behavior:
 - Patient records can be viewed in a shared role-safe record page.
 - Orders now include status, result text, and completion timestamp.
 - Documents are encrypted before storage and only downloadable by the uploader or an administrator.
-- A top ribbon identifies the project as a Qwasar project by Gints Turlajs.
+- The dashboard and role panels show the signed-in user's first name and last name after registration.
+- The patient dashboard also shows a list of registered doctors.
+- A top ribbon identifies the project as an improved Qwasar project by Gints Turlajs.
+
+## Review Corrections
+The negative review points mentioned during grading have been corrected in this version:
+- patient and doctor public registration no longer blocks progress behind extra required fields
+- first name and last name are now the only required public registration fields
+- valid registration now redirects directly to the next dashboard screen
+- the registered first name and last name are now visible on the dashboard and role panel
+- the patient dashboard now also displays the registered doctors list
+- invalid first name or last name input now stays on the form and shows validation feedback
 
 ## Registration
 - Register patient: `/register/patient/`
 - Register doctor: `/register/doctor/`
 - Dashboard: `/dashboard/`
+
+Public registration behavior:
+- Only `first_name` and `last_name` are required for patient and doctor signup.
+- Optional fields can be left empty.
+- After a valid submission, the user is logged in automatically and redirected to the dashboard.
+- If first name or last name is missing or malformed, the form stays on the registration page and shows validation errors.
 
 Additional role routes:
 - Patient record: `/patient/<id>/record/`
@@ -125,14 +103,10 @@ Additional role routes:
 - Download document: `/document/<id>/download/`
 - Logout: `/accounts/logout/`
 
-Testing:
-- Run tests with `python manage.py test`
-- CI workflow is defined in `.github/workflows/ci.yml`
-- The automated test suite currently covers approval flow, order processing, and encrypted document handling.
-
 Deployment note:
 - The deployed cloud URL should be written in `my_coruscant_health_administration_url.txt`
 - That file should contain only the final deployed URL
+- Replace the placeholder with the final live Render URL before submission
 
 ### The Core Team
 

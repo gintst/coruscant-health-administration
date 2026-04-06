@@ -64,22 +64,44 @@ class WorkflowTests(TestCase):
         self.admin_user.save()
         Administrator.objects.create(user=self.admin_user, level="Senior")
 
-    def test_patient_registration_starts_pending(self):
+    def test_patient_registration_is_approved_immediately(self):
         response = self.client.post(
             reverse("register_patient"),
             {
-                "username": "pending_patient",
                 "first_name": "Padme",
                 "last_name": "Amidala",
-                "email": "padme@example.com",
-                "password": "secure-pass-123",
-                "date_of_birth": "2000-01-01",
-                "location": "Coruscant",
             },
         )
 
         self.assertRedirects(response, reverse("dashboard"))
-        self.assertFalse(Patient.objects.get(user__username="pending_patient").is_approved)
+        patient = Patient.objects.get(user__first_name="Padme", user__last_name="Amidala")
+        self.assertTrue(patient.is_approved)
+
+    def test_patient_registration_requires_first_name_and_last_name(self):
+        response = self.client.post(
+            reverse("register_patient"),
+            {
+                "first_name": "Padme1",
+                "last_name": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Use letters only")
+        self.assertContains(response, "This field is required.")
+
+    def test_doctor_registration_accepts_minimum_required_fields(self):
+        response = self.client.post(
+            reverse("register_doctor"),
+            {
+                "first_name": "Obi-Wan",
+                "last_name": "Kenobi",
+            },
+        )
+
+        self.assertRedirects(response, reverse("dashboard"))
+        doctor = Doctor.objects.get(user__first_name="Obi-Wan", user__last_name="Kenobi")
+        self.assertTrue(doctor.is_approved)
 
     def test_admin_can_approve_pending_doctor(self):
         user = User.objects.create_user(username="pending_doctor", password="password")

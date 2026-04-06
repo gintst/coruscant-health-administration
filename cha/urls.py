@@ -15,9 +15,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
 from django.contrib import admin
-from django.urls import path
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.urls import path, re_path
 from django.contrib.auth import views as auth_views
+from django.views.static import serve
 
 from core import views
 
@@ -40,4 +43,10 @@ urlpatterns = [
     path('order/<int:order_id>/process/', views.process_order, name='process_order'),
     path('document/upload/', views.upload_document, name='upload_document'),
     path('document/<int:document_id>/download/', views.download_document, name='download_document'),
+]
+
+urlpatterns += staticfiles_urlpatterns()
+urlpatterns += [
+    re_path(r"^static/(?P<path>.*)$", serve, {"document_root": settings.BASE_DIR / "core" / "static"}),
+    re_path(r"^media/(?P<path>.*)$", serve, {"document_root": settings.MEDIA_ROOT}),
 ]

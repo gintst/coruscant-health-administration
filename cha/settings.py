@@ -28,6 +28,7 @@ SECRET_KEY = os.environ.get(
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env_bool("DEBUG", True)
+database_url = os.environ.get("DATABASE_URL")
 
 default_hosts = ["127.0.0.1", "localhost"]
 render_hostname = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
@@ -55,7 +56,6 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,6 +63,10 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+use_whitenoise = not DEBUG and bool(render_hostname or database_url)
+if use_whitenoise:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "cha.urls"
 
@@ -96,7 +100,6 @@ DATABASES = {
     }
 }
 
-database_url = os.environ.get("DATABASE_URL")
 if database_url:
     DATABASES["default"] = dj_database_url.parse(
         database_url,
@@ -139,12 +142,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
-if not DEBUG and "test" not in sys.argv:
+static_manifest = STATIC_ROOT / "staticfiles.json"
+if use_whitenoise and "test" not in sys.argv and static_manifest.exists():
     STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
