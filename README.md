@@ -103,11 +103,6 @@ Additional role routes:
 - Download document: `/document/<id>/download/`
 - Logout: `/accounts/logout/`
 
-Deployment note:
-- The deployed cloud URL should be written in `my_coruscant_health_administration_url.txt`
-- That file should contain only the final deployed URL
-- Replace the placeholder with the final live Render URL before submission
-
 ### The Core Team
 
 The core team consists of Gints Turlajs and Gints Turlajs aka The Dream Team.
